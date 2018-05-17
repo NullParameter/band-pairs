@@ -1,5 +1,6 @@
 package band.pairs.strategies;
 
+import band.pairs.strategies.bloom.BloomFilterStrategy;
 import band.pairs.strategies.brute.BruteForceStrategy;
 import band.pairs.strategies.graph.GraphStrategy;
 import com.google.common.collect.Lists;
@@ -22,7 +23,7 @@ public class StrategyTest {
 
     @Parameterized.Parameters
     public static ArrayList<Class<? extends BandTrackingStrategy>> strategies() {
-        return Lists.newArrayList(BruteForceStrategy.class, GraphStrategy.class);
+        return Lists.newArrayList(BruteForceStrategy.class, GraphStrategy.class/*, BloomFilterStrategy.class*/);
     }
 
     @Parameterized.Parameter

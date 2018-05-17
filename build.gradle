@@ -16,12 +16,14 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile group: 'org.assertj', name: 'assertj-core', version: '3.10.0'
     testCompile group: 'org.mockito', name: 'mockito-all', version: '1.8.4'
+    testCompile group: 'commons-io', name: 'commons-io', version: '2.4'
 }
 
 run {
     args findProperty('input') ?: "src/main/resources/input.txt",
             findProperty('output') ?: "output.csv",
-            hasProperty("strategy") ?: "graph"
+            findProperty("strategy") ?: "graph",
+            findProperty("limit") ?: 50
 }
 
 mainClassName = 'band.pairs.BandPairs'

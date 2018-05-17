@@ -44,13 +44,48 @@ hitting almost the exact same performance.
 This was the point at which I added the strategy pattern, just because I felt like keeping both implementations.
 This also made it a bit simpler to test the main class independently of the actual logic for finding band pairs.
 
+## Bloom Filters
+
+I had some more time, so I started toying around with bloom filters based upon the statement in the instructions
+about being able to use probability and predict the probable outcome.  I've done some work with bloom filters in
+the past, and they have some interesting uses.  I'm not entirely convinced that they're perfect for the job here,
+mostly due to the fact that they add a lot of complexity to the problem that isn't really necessary.
+
+Assuming that the data set gets large though, they do bring down the storage costs a lot, due to not needing to 
+store all of the pairs of strings as in the other solutions.  Instead, they store byte arrays representing the 
+data set.  This also ends up adding a whole lot of computational complexity due to the bloom filter needing to execute 
+a series of hashing algorithms against each entry as well.  So, you're trading some code complexity and compute time for
+using less memory.  If we thought that memory was going to be a bottleneck, then this may very well be a good path
+to take.
+
+That being said, I was only toying around with it and didn't actually get around to completing it.  
+It's here for the sake of showing the possibility, but it probably doesn't actually come up with the right answer 
+right now.  Personally, I think this is overkill given the current stated requirements, and I'd much rather prefer 
+an exact answer, as opposed to a probable guess.  And, the bloom filter parameters would have to continue to be tweaked, 
+to meet whatever requirements we have for hitting the correct amount of probable. 
 
 
 # How to Run
+
+## Application
 
 Code can be executed through Gradle from the root directory of the project, supplying both the input and output filepaths, like so:
 `./gradlew run -Pinput="src/main/resources/input.txt" -Poutput="output.csv"`
 
 If input or output files are not supplied, then defaults will be used.
 
-You can also specify the strategy that you'd like to use, where valid options include BRUTE or GRAPH.  GRAPH is the default.
+You can also specify the strategy that you'd like to use, where valid options include BRUTE and GRAPH.  GRAPH is the default.
+(As noted above, BLOOM is also an option, but that code isn't fully tested, and might not actually return the 
+correct results yet.)
+
+You can also change the occurrence count that we're looking for.  Default is 50.  
+If you'd like to change it, pass a `-Plimit=` property to Gradle.   
+
+## Tests
+
+Tests can be executed through Gradle from the root directory of the project, like this:
+`./gradlew test`
+
+
+I likely would have added a few more tests, but my time was a little limited and, quite honestly, I got a little distracted 
+having fun with rediscovering bloom filters.

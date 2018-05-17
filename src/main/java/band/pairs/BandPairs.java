@@ -1,6 +1,7 @@
 package band.pairs;
 
 import band.pairs.strategies.BandTrackingStrategy;
+import band.pairs.strategies.bloom.BloomFilterStrategy;
 import band.pairs.strategies.brute.BruteForceStrategy;
 import band.pairs.strategies.graph.GraphStrategy;
 
@@ -15,7 +16,7 @@ public class BandPairs {
         this.strategy = strategy;
     }
 
-    public void run(InputStream inputStream, OutputStream outputStream) {
+    public void run(InputStream inputStream, OutputStream outputStream, int occurenceLimit) {
 
         try (BufferedReader input = new BufferedReader(new InputStreamReader(inputStream))) {
             String line;
@@ -24,12 +25,12 @@ public class BandPairs {
                 strategy.addBandList(bands);
             }
         } catch (IOException e) {
-            System.exit(2);
+            throw new RuntimeException("Error reading from input.");
         }
 
         try (PrintWriter output = new PrintWriter(outputStream)) {
             strategy.visitBands((firstBand, secondBand, occurrences) -> {
-               if (occurrences >= 50) {
+               if (occurrences >= occurenceLimit) {
                    output.println(String.format("%s,%s", firstBand, secondBand));
                }
             });
@@ -40,6 +41,7 @@ public class BandPairs {
         final String inputFilePath = args[0];
         final String outputFilePath = args[1];
         final String strategyName = args[2].toUpperCase();
+        final int limit = Integer.parseInt(args[3]);
 
         final File inputFile = new File(inputFilePath);
 
@@ -53,6 +55,9 @@ public class BandPairs {
             case "GRAPH":
                 strategy = new GraphStrategy();
                 break;
+            case "BLOOM":
+                strategy = new BloomFilterStrategy();
+                break;
             case "BRUTE":
             default:
                 strategy = new BruteForceStrategy();
@@ -65,12 +70,13 @@ public class BandPairs {
                 FileInputStream input = new FileInputStream(inputFile);
                 FileOutputStream output = new FileOutputStream(outputFile);
         ) {
-
-            new BandPairs(strategy).run(input, output);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            new BandPairs(strategy).run(input, output, limit);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error writing to output file.");
+            System.exit(3);
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
+            System.exit(4);
         }
     }
 }
