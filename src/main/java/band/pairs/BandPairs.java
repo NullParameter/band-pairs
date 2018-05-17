@@ -1,42 +1,74 @@
 package band.pairs;
 
+import band.pairs.strategies.BandTrackingStrategy;
+import band.pairs.strategies.brute.BruteForceStrategy;
+import band.pairs.strategies.graph.GraphStrategy;
+
 import java.io.*;
 import java.util.*;
 
 public class BandPairs {
 
-    public static void main(String... args) {
-        final String inputFilePath = args[0];
-        final String outputFilePath = args[1];
+    private final BandTrackingStrategy strategy;
 
-        final File inputFile = new File(inputFilePath);
+    public BandPairs(BandTrackingStrategy strategy) {
+        this.strategy = strategy;
+    }
 
-        final Map<String, Integer> bandPairCounts = new HashMap<>();
+    public void run(InputStream inputStream, OutputStream outputStream) {
 
-        try (BufferedReader input = new BufferedReader(new FileReader(inputFile))) {
+        try (BufferedReader input = new BufferedReader(new InputStreamReader(inputStream))) {
             String line;
-            while((line = input.readLine()) != null) {
+            while ((line = input.readLine()) != null) {
                 List<String> bands = Arrays.asList(line.split(","));
-                Collections.sort(bands);
-
-                for (int i = 0; i < bands.size(); i++) {
-                    for (int j = i + 1; j < bands.size(); j++) {
-                        String bandPair = bands.get(i) + "," + bands.get(j);
-                        bandPairCounts.compute(bandPair, (pair, count) -> count == null ? 1 : count + 1);
-                    }
-                }
+                strategy.addBandList(bands);
             }
-        } catch (FileNotFoundException e) {
-            System.exit(1);
         } catch (IOException e) {
             System.exit(2);
         }
 
-        try (PrintWriter output = new PrintWriter(new FileWriter(outputFilePath))) {
-            bandPairCounts.entrySet().stream()
-                    .filter(e -> e.getValue() >= 50)
-                    .map(Map.Entry::getKey)
-                    .forEach(bands -> output.println(bands));
+        try (PrintWriter output = new PrintWriter(outputStream)) {
+            strategy.visitBands((firstBand, secondBand, occurrences) -> {
+               if (occurrences >= 50) {
+                   output.println(String.format("%s,%s", firstBand, secondBand));
+               }
+            });
+        }
+    }
+
+    public static void main(String... args) {
+        final String inputFilePath = args[0];
+        final String outputFilePath = args[1];
+        final String strategyName = args[2].toUpperCase();
+
+        final File inputFile = new File(inputFilePath);
+
+        if (!inputFile.exists()) {
+            System.err.println("Specified input file doesn't exist.");
+            System.exit(1);
+        }
+
+        final BandTrackingStrategy strategy;
+        switch(strategyName) {
+            case "GRAPH":
+                strategy = new GraphStrategy();
+                break;
+            case "BRUTE":
+            default:
+                strategy = new BruteForceStrategy();
+                break;
+
+        }
+
+        final File outputFile = new File(outputFilePath);
+        try (
+                FileInputStream input = new FileInputStream(inputFile);
+                FileOutputStream output = new FileOutputStream(outputFile);
+        ) {
+
+            new BandPairs(strategy).run(input, output);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }

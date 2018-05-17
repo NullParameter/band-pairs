@@ -12,11 +12,16 @@ repositories {
 }
 
 dependencies {
+    compile group: 'com.google.guava', name: 'guava', version: '19.0'
     testCompile group: 'junit', name: 'junit', version: '4.12'
+    testCompile group: 'org.assertj', name: 'assertj-core', version: '3.10.0'
+    testCompile group: 'org.mockito', name: 'mockito-all', version: '1.8.4'
 }
 
 run {
-    args findProperty('input'), findProperty('output')
+    args findProperty('input') ?: "src/main/resources/input.txt",
+            findProperty('output') ?: "output.csv",
+            hasProperty("strategy") ?: "graph"
 }
 
 mainClassName = 'band.pairs.BandPairs'
